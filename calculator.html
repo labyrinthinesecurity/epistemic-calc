@@ -1,0 +1,1133 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>AI Epistemic Threat Calculator</title>  
+<style>  
+  :root {  
+    --bg: #0a0e17;  
+    --surface: #131a2b;  
+    --surface2: #1a2340;  
+    --border: #2a3555;  
+    --text: #e0e6f0;  
+    --text-dim: #8892a8;  
+    --accent: #4ea8ff;  
+    --none-color: #6b7280;  
+    --low-color: #34d399;  
+    --medium-color: #fbbf24;  
+    --high-color: #fb923c;  
+    --critical-color: #f87171;  
+    --existential-color: #a78bfa;  
+    --tier-none-bg: rgba(107,114,128,0.1);  
+    --tier-low-bg: rgba(52,211,153,0.1);  
+    --tier-medium-bg: rgba(251,191,36,0.1);  
+    --tier-high-bg: rgba(251,146,60,0.1);  
+    --tier-critical-bg: rgba(248,113,113,0.1);  
+    --tier-existential-bg: rgba(167,139,250,0.1);  
+  }  
+  
+  * { margin:0; padding:0; box-sizing:border-box; }  
+  
+  body {  
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;  
+    background: var(--bg);  
+    color: var(--text);  
+    line-height: 1.6;  
+    min-height: 100vh;  
+  }  
+  
+  .container {  
+    max-width: 1200px;  
+    margin: 0 auto;  
+    padding: 20px;  
+  }  
+  
+  header {  
+    text-align: center;  
+    padding: 30px 0 20px;  
+    border-bottom: 1px solid var(--border);  
+    margin-bottom: 10px;  
+  }  
+  
+  header h1 {  
+    font-size: 1.8rem;  
+    font-weight: 700;  
+    letter-spacing: -0.5px;  
+    margin-bottom: 6px;  
+  }  
+  
+  header h1 span { color: var(--accent); }  
+  
+  header p {  
+    color: var(--text-dim);  
+    font-size: 0.9rem;  
+  }  
+  
+  .top-bar {  
+    display: flex;  
+    justify-content: flex-end;  
+    align-items: center;  
+    padding: 8px 0 16px;  
+    gap: 10px;  
+  }  
+  
+  .top-reset-btn {  
+    display: inline-flex;  
+    align-items: center;  
+    gap: 6px;  
+    padding: 8px 18px;  
+    background: transparent;  
+    border: 1px solid var(--border);  
+    border-radius: 8px;  
+    color: var(--text-dim);  
+    font-size: 0.82rem;  
+    cursor: pointer;  
+    transition: all 0.2s;  
+    font-family: inherit;  
+  }  
+  
+  .top-reset-btn:hover {  
+    border-color: var(--accent);  
+    color: var(--accent);  
+    background: rgba(78,168,255,0.05);  
+  }  
+  
+  .top-reset-btn .reset-icon {  
+    font-size: 1.05rem;  
+    line-height: 1;  
+  }  
+  
+  .layout {  
+    display: grid;  
+    grid-template-columns: 1fr 1fr;  
+    gap: 24px;  
+  }  
+  
+  @media (max-width: 860px) {  
+    .layout { grid-template-columns: 1fr; }  
+  }  
+  
+  .panel {  
+    background: var(--surface);  
+    border: 1px solid var(--border);  
+    border-radius: 12px;  
+    padding: 24px;  
+  }  
+  
+  .panel-title {  
+    font-size: 0.8rem;  
+    font-weight: 600;  
+    text-transform: uppercase;  
+    letter-spacing: 1.2px;  
+    color: var(--accent);  
+    margin-bottom: 18px;  
+    display: flex;  
+    align-items: center;  
+    gap: 6px;  
+  }  
+  
+  .factor-group { margin-bottom: 18px; }  
+  
+  .factor-header {  
+    display: flex;  
+    justify-content: space-between;  
+    align-items: baseline;  
+    margin-bottom: 4px;  
+  }  
+  
+  .factor-label { font-weight: 600; font-size: 0.95rem; }  
+  .factor-abbr { color: var(--accent); font-weight: 700; margin-right: 6px; }  
+  
+  .factor-value {  
+    font-size: 0.85rem;  
+    font-weight: 700;  
+    color: var(--accent);  
+    min-width: 20px;  
+    text-align: right;  
+  }  
+  
+  .factor-desc {  
+    font-size: 0.75rem;  
+    color: var(--text-dim);  
+    margin-bottom: 8px;  
+  }  
+  
+  .slider-labels {  
+    display: flex;  
+    justify-content: space-between;  
+    font-size: 0.65rem;  
+    color: var(--text-dim);  
+    margin-top: 2px;  
+    padding: 0 2px;  
+  }  
+  
+  input[type="range"] {  
+    -webkit-appearance: none;  
+    appearance: none;  
+    width: 100%;  
+    height: 6px;  
+    border-radius: 3px;  
+    background: var(--border);  
+    outline: none;  
+    cursor: pointer;  
+  }  
+  
+  input[type="range"]::-webkit-slider-thumb {  
+    -webkit-appearance: none;  
+    appearance: none;  
+    width: 20px; height: 20px;  
+    border-radius: 50%;  
+    background: var(--accent);  
+    border: 2px solid var(--bg);  
+    box-shadow: 0 0 8px rgba(78,168,255,0.4);  
+    cursor: pointer;  
+    transition: transform 0.15s;  
+  }  
+  
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }  
+  
+  input[type="range"]::-moz-range-thumb {  
+    width: 20px; height: 20px;  
+    border-radius: 50%;  
+    background: var(--accent);  
+    border: 2px solid var(--bg);  
+    box-shadow: 0 0 8px rgba(78,168,255,0.4);  
+    cursor: pointer;  
+  }  
+  
+  .divider {  
+    border: none;  
+    border-top: 1px dashed var(--border);  
+    margin: 20px 0;  
+  }  
+  
+  .score-display { text-align: center; padding: 24px 0; }  
+  
+  .cts-score {  
+    font-size: 3.5rem;  
+    font-weight: 800;  
+    letter-spacing: -2px;  
+    line-height: 1;  
+    margin-bottom: 4px;  
+    transition: color 0.3s;  
+  }  
+  
+  .cts-label {  
+    font-size: 0.8rem;  
+    color: var(--text-dim);  
+    text-transform: uppercase;  
+    letter-spacing: 1px;  
+  }  
+  
+  .tier-badge {  
+    display: inline-block;  
+    padding: 6px 20px;  
+    border-radius: 20px;  
+    font-size: 0.85rem;  
+    font-weight: 700;  
+    text-transform: uppercase;  
+    letter-spacing: 1px;  
+    margin-top: 12px;  
+    border: 2px solid;  
+    transition: all 0.3s;  
+  }  
+  
+  .tier-none { color: var(--none-color); border-color: var(--none-color); background: var(--tier-none-bg); }  
+  .tier-low { color: var(--low-color); border-color: var(--low-color); background: var(--tier-low-bg); }  
+  .tier-medium { color: var(--medium-color); border-color: var(--medium-color); background: var(--tier-medium-bg); }  
+  .tier-high { color: var(--high-color); border-color: var(--high-color); background: var(--tier-high-bg); }  
+  .tier-critical { color: var(--critical-color); border-color: var(--critical-color); background: var(--tier-critical-bg); }  
+  .tier-existential { color: var(--existential-color); border-color: var(--existential-color); background: var(--tier-existential-bg); }  
+  
+  .breakdown { margin-top: 20px; }  
+  
+  .breakdown-row {  
+    display: flex;  
+    justify-content: space-between;  
+    align-items: center;  
+    padding: 8px 0;  
+    border-bottom: 1px solid rgba(42,53,85,0.5);  
+    font-size: 0.85rem;  
+  }  
+  
+  .breakdown-row:last-child { border-bottom: none; }  
+  .breakdown-label { color: var(--text-dim); }  
+  
+  .breakdown-value {  
+    font-weight: 700;  
+    font-variant-numeric: tabular-nums;  
+  }  
+  
+  .breakdown-formula {  
+    font-size: 0.7rem;  
+    color: var(--text-dim);  
+    font-family: 'Courier New', monospace;  
+  }  
+  
+  .interaction-list { margin-top: 10px; }  
+  
+  .interaction-item {  
+    display: flex;  
+    justify-content: space-between;  
+    align-items: center;  
+    padding: 4px 8px;  
+    font-size: 0.8rem;  
+    border-radius: 6px;  
+    margin-bottom: 3px;  
+  }  
+  
+  .interaction-item.active { background: rgba(78,168,255,0.1); color: var(--accent); }  
+  .interaction-item.inactive { color: var(--text-dim); opacity: 0.5; }  
+  
+  .interaction-check {  
+    font-weight: 700;  
+    min-width: 40px;  
+    text-align: right;  
+  }  
+  
+  .cxts-section {  
+    margin-top: 24px;  
+    padding-top: 20px;  
+    border-top: 2px solid var(--border);  
+  }  
+  
+  .cxts-score {  
+    font-size: 2.2rem;  
+    font-weight: 800;  
+    letter-spacing: -1px;  
+    text-align: center;  
+    margin: 10px 0;  
+    transition: color 0.3s;  
+  }  
+  
+  .harm-multiplier {  
+    text-align: center;  
+    font-size: 1.1rem;  
+    color: var(--text-dim);  
+    margin-bottom: 6px;  
+  }  
+  
+  .harm-multiplier span { color: var(--accent); font-weight: 700; }  
+  
+  .tier-ref { margin-top: 24px; }  
+  
+  .tier-ref-row {  
+    display: flex;  
+    align-items: center;  
+    gap: 10px;  
+    padding: 6px 0;  
+    font-size: 0.8rem;  
+  }  
+  
+  .tier-dot {  
+    width: 12px; height: 12px;  
+    border-radius: 50%;  
+    flex-shrink: 0;  
+  }  
+  
+  .tier-dot.t-none { background: var(--none-color); }  
+  .tier-dot.t-low { background: var(--low-color); }  
+  .tier-dot.t-med { background: var(--medium-color); }  
+  .tier-dot.t-high { background: var(--high-color); }  
+  .tier-dot.t-crit { background: var(--critical-color); }  
+  .tier-dot.t-exist { background: var(--existential-color); }  
+  
+  .tier-range {  
+    color: var(--text-dim);  
+    min-width: 80px;  
+    font-variant-numeric: tabular-nums;  
+  }  
+  
+  .tier-name { font-weight: 600; }  
+  
+  .vector-string {  
+    background: var(--surface2);  
+    border: 1px solid var(--border);  
+    border-radius: 8px;  
+    padding: 10px 14px;  
+    font-family: 'Courier New', monospace;  
+    font-size: 0.78rem;  
+    color: var(--accent);  
+    word-break: break-all;  
+    margin-top: 16px;  
+    cursor: pointer;  
+    position: relative;  
+    transition: border-color 0.2s;  
+  }  
+  
+  .vector-string:hover { border-color: var(--accent); }  
+  
+  .vector-string::after {  
+    content: 'Click to copy';  
+    position: absolute;  
+    right: 10px;  
+    top: 50%;  
+    transform: translateY(-50%);  
+    font-size: 0.65rem;  
+    color: var(--text-dim);  
+    font-family: 'Segoe UI', system-ui, sans-serif;  
+  }  
+  
+  .vector-string.copied::after {  
+    content: 'Copied!';  
+    color: var(--low-color);  
+  }  
+  
+  .info-icon {  
+    display: inline-flex;  
+    align-items: center;  
+    justify-content: center;  
+    width: 17px; height: 17px;  
+    border-radius: 50%;  
+    background: var(--border);  
+    color: var(--text-dim);  
+    font-size: 0.7rem;  
+    font-weight: 700;  
+    cursor: help;  
+    position: relative;  
+    flex-shrink: 0;  
+  }  
+  
+  .info-icon:hover .tooltip { display: block; }  
+  
+  .tooltip {  
+    display: none;  
+    position: absolute;  
+    bottom: 24px;  
+    left: 50%;  
+    transform: translateX(-50%);  
+    background: var(--surface2);  
+    border: 1px solid var(--border);  
+    border-radius: 8px;  
+    padding: 10px 12px;  
+    font-size: 0.75rem;  
+    color: var(--text);  
+    width: 280px;  
+    line-height: 1.5;  
+    z-index: 100;  
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);  
+    font-weight: 400;  
+    text-transform: none;  
+    letter-spacing: 0;  
+  }  
+  
+  .formula-help-btn {  
+    display: inline-flex;  
+    align-items: center;  
+    justify-content: center;  
+    width: 19px; height: 19px;  
+    border-radius: 50%;  
+    background: var(--accent);  
+    color: var(--bg);  
+    font-size: 0.75rem;  
+    font-weight: 800;  
+    cursor: pointer;  
+    border: none;  
+    flex-shrink: 0;  
+    transition: transform 0.15s, box-shadow 0.15s;  
+  }  
+  
+  .formula-help-btn:hover {  
+    transform: scale(1.15);  
+    box-shadow: 0 0 10px rgba(78,168,255,0.5);  
+  }  
+  
+  .reset-btn {  
+    display: block;  
+    width: 100%;  
+    padding: 10px;  
+    margin-top: 16px;  
+    background: transparent;  
+    border: 1px solid var(--border);  
+    border-radius: 8px;  
+    color: var(--text-dim);  
+    font-size: 0.8rem;  
+    cursor: pointer;  
+    transition: all 0.2s;  
+    font-family: inherit;  
+  }  
+  
+  .reset-btn:hover {  
+    border-color: var(--accent);  
+    color: var(--accent);  
+  }  
+  
+  footer {  
+    text-align: center;  
+    padding: 30px 0 20px;  
+    color: var(--text-dim);  
+    font-size: 0.7rem;  
+    border-top: 1px solid var(--border);  
+    margin-top: 30px;  
+  }  
+  
+  .component-bar-wrap { margin-top: 16px; }  
+  
+  .comp-bar-row {  
+    display: flex;  
+    align-items: center;  
+    margin-bottom: 6px;  
+    font-size: 0.78rem;  
+  }  
+  
+  .comp-bar-label {  
+    min-width: 100px;  
+    color: var(--text-dim);  
+  }  
+  
+  .comp-bar-track {  
+    flex: 1;  
+    height: 8px;  
+    background: var(--border);  
+    border-radius: 4px;  
+    overflow: hidden;  
+    margin: 0 10px;  
+  }  
+  
+  .comp-bar-fill {  
+    height: 100%;  
+    border-radius: 4px;  
+    transition: width 0.4s ease, background 0.3s;  
+  }  
+  
+  .comp-bar-val {  
+    min-width: 50px;  
+    text-align: right;  
+    font-weight: 700;  
+    font-variant-numeric: tabular-nums;  
+  }  
+  
+  .score-meter {  
+    width: 100%;  
+    height: 10px;  
+    border-radius: 5px;  
+    margin: 12px 0 4px;  
+    position: relative;  
+    overflow: visible;  
+  }  
+  
+  .score-meter-bg {  
+    width: 100%;  
+    height: 100%;  
+    border-radius: 5px;  
+    background: linear-gradient(to right,  
+      var(--none-color) 0%,  
+      var(--low-color) 10%,  
+      var(--medium-color) 30%,  
+      var(--high-color) 50%,  
+      var(--critical-color) 75%,  
+      var(--existential-color) 92%,  
+      var(--existential-color) 100%  
+    );  
+    opacity: 0.35;  
+  }  
+  
+  .score-meter-needle {  
+    position: absolute;  
+    top: -4px;  
+    width: 4px;  
+    height: 18px;  
+    border-radius: 2px;  
+    background: #fff;  
+    box-shadow: 0 0 8px rgba(255,255,255,0.6);  
+    transition: left 0.4s ease;  
+  }  
+  
+  .raw-cts-note {  
+    text-align: center;  
+    font-size: 0.72rem;  
+    color: var(--text-dim);  
+    margin-top: 2px;  
+  }  
+  
+  /* ===== Modal ===== */  
+  .modal-overlay {  
+    display: none;  
+    position: fixed;  
+    inset: 0;  
+    background: rgba(0,0,0,0.7);  
+    backdrop-filter: blur(4px);  
+    z-index: 1000;  
+    justify-content: center;  
+    align-items: center;  
+    padding: 20px;  
+  }  
+  
+  .modal-overlay.open {  
+    display: flex;  
+  }  
+  
+  .modal {  
+    background: var(--surface);  
+    border: 1px solid var(--border);  
+    border-radius: 16px;  
+    max-width: 720px;  
+    width: 100%;  
+    max-height: 85vh;  
+    overflow-y: auto;  
+    padding: 32px;  
+    position: relative;  
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);  
+  }  
+  
+  .modal-close {  
+    position: absolute;  
+    top: 16px;  
+    right: 16px;  
+    width: 32px; height: 32px;  
+    border-radius: 50%;  
+    background: var(--border);  
+    border: none;  
+    color: var(--text);  
+    font-size: 1.1rem;  
+    cursor: pointer;  
+    display: flex;  
+    align-items: center;  
+    justify-content: center;  
+    transition: background 0.2s;  
+  }  
+  
+  .modal-close:hover { background: var(--accent); color: var(--bg); }  
+  
+  .modal h2 {  
+    font-size: 1.3rem;  
+    margin-bottom: 16px;  
+    color: var(--accent);  
+  }  
+  
+  .modal h3 {  
+    font-size: 1rem;  
+    margin: 20px 0 8px;  
+    color: var(--text);  
+    border-bottom: 1px solid var(--border);  
+    padding-bottom: 6px;  
+  }  
+  
+  .modal p, .modal li {  
+    font-size: 0.88rem;  
+    color: var(--text-dim);  
+    line-height: 1.7;  
+  }  
+  
+  .modal ul {  
+    padding-left: 20px;  
+    margin: 8px 0;  
+  }  
+  
+  .modal li { margin-bottom: 6px; }  
+  
+  .modal code {  
+    background: var(--surface2);  
+    padding: 2px 6px;  
+    border-radius: 4px;  
+    font-size: 0.82rem;  
+    color: var(--accent);  
+  }  
+  
+  .modal .formula-block {  
+    background: var(--surface2);  
+    border: 1px solid var(--border);  
+    border-radius: 8px;  
+    padding: 14px 18px;  
+    margin: 12px 0;  
+    font-family: 'Courier New', monospace;  
+    font-size: 0.85rem;  
+    color: var(--accent);  
+    line-height: 1.8;  
+    overflow-x: auto;  
+  }  
+  
+  .modal .highlight {  
+    color: var(--text);  
+    font-weight: 600;  
+  }  
+  
+  .modal table {  
+    width: 100%;  
+    border-collapse: collapse;  
+    margin: 12px 0;  
+    font-size: 0.82rem;  
+  }  
+  
+  .modal th {  
+    text-align: left;  
+    padding: 8px 10px;  
+    background: var(--surface2);  
+    color: var(--accent);  
+    font-weight: 600;  
+    border-bottom: 2px solid var(--border);  
+  }  
+  
+  .modal td {  
+    padding: 6px 10px;  
+    border-bottom: 1px solid rgba(42,53,85,0.4);  
+    color: var(--text-dim);  
+  }  
+</style>  
+</head>  
+<body>  
+  
+<!-- ===== FORMULA MODAL ===== -->  
+<div class="modal-overlay" id="formulaModal">  
+  <div class="modal">  
+    <button class="modal-close" onclick="closeModal()">&times;</button>  
+  
+    <h2>CTS v2 — Full Formula Specification</h2>  
+    <p>The Compound Threat Score captures <strong>nonlinear interactions</strong> between attack properties. Unlike simple additive scoring, CTS uses multiplicative cores — because an attack that is persistent <em>and</em> stealthy <em>and</em> autonomous is qualitatively more dangerous than the sum of those properties suggests.</p>  
+  
+    <h3>The Master Formula</h3>  
+    <div class="formula-block">  
+      CTS = φ(P, Pr, Au) × ψ(S, O) × ω(A, Pr) + λ(T, R) + ΣI  
+    </div>  
+    <p>Three <strong>multiplicative cores</strong> (φ × ψ × ω) capture whether the attack is self-sustaining, invisible, and scalable. Two <strong>additive terms</strong> (λ + ΣI) add forensic difficulty and pairwise synergy bonuses. The result is normalized to a <strong>0–10 scale</strong>.</p>  
+  
+    <h3>φ — Sustainability Core</h3>  
+    <div class="formula-block">  
+      φ = 1 + (P × Pr<sup>0.7</sup> × Au) / 19.44 × 4  
+    </div>  
+    <p><strong>What it measures:</strong> Can the attack keep itself alive and spreading without the attacker doing anything more?</p>  
+    <ul>  
+      <li><strong>P (Persistence)</strong> — does it survive across sessions?</li>  
+      <li><strong>Pr (Propagation)</strong> — does it spread to other agents? Uses Pr<sup>0.7</sup> (concave) because the jump from "can't spread" to "can spread at all" matters most.</li>  
+      <li><strong>Au (Autonomy)</strong> — does it run on its own?</li>  
+    </ul>  
+    <p>These three multiply because persistence without autonomy needs manual upkeep, autonomy without persistence dies each session, and propagation without either is a flash in the pan. All three together = autonomous epidemic. Range: <code>1.0 – 5.0</code></p>  
+  
+    <h3>ψ — Evasion Core</h3>  
+    <div class="formula-block">  
+      ψ = 1 + (S × O) / 9 × 3  
+    </div>  
+    <p><strong>What it measures:</strong> Can any layer of defense — automated scanners, critic models, or human reviewers — actually detect this attack?</p>  
+    <ul>  
+      <li><strong>S (Stealth)</strong> — how hard is it to spot?</li>  
+      <li><strong>O (Oversight Defeat)</strong> — does it beat all oversight layers?</li>  
+    </ul>  
+    <p>These multiply because high stealth but weak oversight defeat means automated systems catch it; strong oversight defeat but low stealth means basic scanning finds it. Both together = invisible to everything. Range: <code>1.0 – 4.0</code></p>  
+  
+    <h3>ω — Scale Core</h3>  
+    <div class="formula-block">  
+      ω = 1 + (A × 0.7 × Pr) / 9 × 2  
+    </div>  
+    <p><strong>What it measures:</strong> How big does the blast radius get?</p>  
+    <ul>  
+      <li><strong>A (Amplification)</strong> — does the effect grow beyond the initial input?</li>  
+      <li><strong>Pr (Propagation)</strong> — how many agents are hit? Uses <code>0.7 × Pr</code> (attenuated) because Pr already contributes to φ.</li>  
+    </ul>  
+    <p>Range: <code>1.0 – 3.0</code></p>  
+  
+    <h3>λ — Forensic Penalty (additive)</h3>  
+    <div class="formula-block">  
+      λ = 2 × (T + R)  
+    </div>  
+    <ul>  
+      <li><strong>T (Temporal Separation)</strong> — delay between planting and effect complicates attribution</li>  
+      <li><strong>R (Remediation Resistance)</strong> — how hard is cleanup once detected?</li>  
+    </ul>  
+    <p>These are additive, not multiplicative — they make a bad attack worse but don't qualitatively transform it. Range: <code>0 – 12</code></p>  
+  
+    <h3>ΣI — Interaction Bonuses (additive)</h3>  
+    <p>Specific factor pairs that create emergent dangers when <strong>both are ≥ 2</strong>:</p>  
+    <table>  
+      <tr><th>Pair</th><th>Bonus</th><th>Why</th></tr>  
+      <tr><td>P × S</td><td>+2</td><td>Persistent + Stealthy = may never be discovered</td></tr>  
+      <tr><td>Au × T</td><td>+2</td><td>Autonomous + Delayed = self-executing time bomb</td></tr>  
+      <tr><td>O × R</td><td>+3</td><td>Can't detect it + can't fix it = effectively permanent</td></tr>  
+      <tr><td>Pr × A</td><td>+2</td><td>Spreading + Amplifying = epidemic threshold</td></tr>  
+      <tr><td>S × T</td><td>+2</td><td>Invisible + Delayed = forensic nightmare</td></tr>  
+    </table>  
+    <p>Maximum interaction bonus: <code>+11</code></p>  
+  
+    <h3>Normalization</h3>  
+    <div class="formula-block">  
+      CTS_normalized = (Raw_CTS − 1) / (71 − 1) × 10  
+    </div>  
+    <p>Raw CTS ranges from 1.0 (all zeros — the three cores each equal 1, product = 1) to 71.0 (all factors at 3). This is linearly mapped to <strong>0.0 – 10.0</strong> for CVSS compatibility.</p>  
+  
+    <h3>CxTS — Contextual Threat Score</h3>  
+    <div class="formula-block">  
+      H = 1 + (Rev × D) / 9 × 1.5<br>  
+      CxTS = min(10.0, CTS_normalized × H)  
+    </div>  
+    <p>The Harm Multiplier <strong>H</strong> accounts for real-world context:</p>  
+    <ul>  
+      <li><strong>Rev (Reversibility)</strong> — can the damage be undone?</li>  
+      <li><strong>D (Domain Criticality)</strong> — how high are the stakes?</li>  
+    </ul>  
+    <p>H ranges from <code>1.0×</code> (low-stakes, reversible) to <code>2.5×</code> (critical, irreversible). CxTS is capped at 10.0.</p>  
+  
+    <h3>Severity Bands (CVSS-aligned)</h3>  
+    <table>  
+      <tr><th>Score</th><th>Severity</th><th>Description</th></tr>  
+      <tr><td>0.0</td><td style="color:var(--none-color)">None</td><td>No meaningful threat</td></tr>  
+      <tr><td>0.1 – 1.9</td><td style="color:var(--low-color)">Low</td><td>Transient, local, detectable</td></tr>  
+      <tr><td>2.0 – 3.9</td><td style="color:var(--medium-color)">Medium</td><td>Meaningful threat, standard defenses may suffice</td></tr>  
+      <tr><td>4.0 – 6.9</td><td style="color:var(--high-color)">High</td><td>Persistent or evasive, requires defense-in-depth</td></tr>  
+      <tr><td>7.0 – 8.9</td><td style="color:var(--critical-color)">Critical</td><td>Systemic risk, ecosystem-level response needed</td></tr>  
+      <tr><td>9.0 – 10.0</td><td style="color:var(--existential-color)">Existential</td><td>Self-sustaining epistemic capture, all oversight defeated</td></tr>  
+    </table>  
+  
+    <h3>Configuration</h3>  
+    <p>This calculator uses <strong>Config C</strong>: k₁=4, k₂=3, k₃=2, k₄=2, k<sub>H</sub>=1.5. Sensitivity analysis across five configurations (k₁ from 2–6) shows all rankings are stable — top-4 and bottom-3 triples are invariant across all tested parameters.</p>  
+  </div>  
+</div>  
+  
+<div class="container">  
+  <header>  
+    <h1>AI <span>Epistemic Threat</span> Calculator based on Google's <span>Agent Traps</span></h1>  
+    <p>The Compound Threat Score (CTS) V2 is a nonlinear scoring system made by Opus and ChatGPT · Original traps by <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6372438">Franklin et al. (2026)</a> · </p>  
+  </header>  
+  
+  <div class="top-bar">  
+    <button class="top-reset-btn" onclick="resetAll()">  
+      <span class="reset-icon">↺</span> Reset All Factors  
+    </button>  
+  </div>  
+  
+  <div class="layout">  
+  
+    <!-- LEFT: Input Panel -->  
+    <div>  
+      <div class="panel">  
+        <div class="panel-title">Intrinsic Factors (0–3)</div>  
+        <div id="factors-container"></div>  
+  
+        <hr class="divider">  
+  
+        <div class="panel-title">Context Factors (CxTS)  
+          <span class="info-icon">?  
+            <span class="tooltip">Domain-dependent factors applied <em>after</em> the intrinsic CTS to produce the Contextual Threat Score. CxTS uses the same 0–10 scale but accounts for real-world harm reversibility and domain criticality. These do not affect the core CTS ranking.</span>  
+          </span>  
+        </div>  
+        <div id="context-container"></div>  
+  
+        <button class="reset-btn" onclick="resetAll()">↺ Reset All to Zero</button>  
+      </div>  
+    </div>  
+  
+    <!-- RIGHT: Results Panel -->  
+    <div>  
+      <div class="panel">  
+        <div class="panel-title">CTS v2 Result</div>  
+  
+        <div class="score-display">  
+          <div class="cts-score" id="cts-score">0.0</div>  
+          <div class="cts-label">Compound Threat Score</div>  
+          <div class="score-meter">  
+            <div class="score-meter-bg"></div>  
+            <div class="score-meter-needle" id="score-needle" style="left:0%"></div>  
+          </div>  
+          <div id="tier-badge" class="tier-badge tier-none">None (0.0)</div>  
+        </div>  
+  
+        <div class="raw-cts-note" id="raw-note">Raw CTS: 1.00 / 71.00 · Normalized: 0.0 / 10.0</div>  
+  
+        <div class="component-bar-wrap" id="comp-bars"></div>  
+  
+        <hr class="divider">  
+  
+        <div class="panel-title">  
+          Formula Breakdown  
+          <button class="formula-help-btn" onclick="openModal()" title="View full formula specification">?</button>  
+        </div>  
+        <div class="breakdown" id="breakdown"></div>  
+  
+        <hr class="divider">  
+  
+        <div class="panel-title">Interaction Bonuses</div>  
+        <div class="interaction-list" id="interactions"></div>  
+  
+        <div class="cxts-section">  
+          <div class="panel-title">Contextual Threat Score  
+            <span class="info-icon">?  
+              <span class="tooltip">CxTS = CTS × H(Rev,D), capped at 10.0. The Harm Multiplier H scales the intrinsic score by domain context. In low-stakes reversible domains H≈1; in critical irreversible domains H can reach 2.5×, but CxTS is always clamped to 0–10.</span>  
+            </span>  
+          </div>  
+          <div class="harm-multiplier">Harm Multiplier H = <span id="h-value">1.00</span>×</div>  
+          <div class="cxts-score" id="cxts-score">0.0</div>  
+          <div class="cts-label" style="text-align:center">CxTS = CTS × H (capped at 10.0)</div>  
+          <div id="cxts-badge" class="tier-badge tier-none" style="display:block;text-align:center;margin:12px auto 0">None (0.0)</div>  
+        </div>  
+  
+        <hr class="divider">  
+  
+        <div class="panel-title">Severity Reference (CVSS-aligned)</div>  
+        <div class="tier-ref">  
+          <div class="tier-ref-row"><span class="tier-dot t-exist"></span><span class="tier-range">9.0 – 10.0</span><span class="tier-name" style="color:var(--existential-color)">Existential</span></div>  
+          <div class="tier-ref-row"><span class="tier-dot t-crit"></span><span class="tier-range">7.0 – 8.9</span><span class="tier-name" style="color:var(--critical-color)">Critical</span></div>  
+          <div class="tier-ref-row"><span class="tier-dot t-high"></span><span class="tier-range">4.0 – 6.9</span><span class="tier-name" style="color:var(--high-color)">High</span></div>  
+          <div class="tier-ref-row"><span class="tier-dot t-med"></span><span class="tier-range">2.0 – 3.9</span><span class="tier-name" style="color:var(--medium-color)">Medium</span></div>  
+          <div class="tier-ref-row"><span class="tier-dot t-low"></span><span class="tier-range">0.1 – 1.9</span><span class="tier-name" style="color:var(--low-color)">Low</span></div>  
+          <div class="tier-ref-row"><span class="tier-dot t-none"></span><span class="tier-range">0.0</span><span class="tier-name" style="color:var(--none-color)">None</span></div>  
+        </div>  
+  
+        <div class="vector-string" id="vector-string" onclick="copyVector()">CTS:2/P:0/Pr:0/S:0/A:0/O:0/Au:0/T:0/R:0/Rev:0/D:0/S:0.0/T:None</div>  
+      </div>  
+    </div>  
+  
+  </div>  
+  
+  <footer>  
+    CTS v2 Compound Threat Score · φ(P,Pr⁰·⁷,Au) × ψ(S,O) × ω(A,0.7·Pr) + λ(T,R) + ΣI · Config C: k₁=4 k₂=3 k₃=2 k₄=2 · Raw range 1–71 → normalized 0–10 · CVSS-aligned severity bands  
+  </footer>  
+</div>  
+  
+<script>  
+// ========== FACTOR DEFINITIONS ==========  
+const factors = [  
+  { id:'P',  name:'Persistence',           desc:'Does the attack survive beyond the session/interaction in which it was planted?',  
+    levels:['Absent — session-bound only','Low — survives one restart','Medium — persists across sessions','High — permanent until removed'] },  
+  { id:'Pr', name:'Propagation',            desc:'Does the attack spread from initially compromised agent(s) to others without additional attacker action?',  
+    levels:['Absent — isolated to one agent','Low — directly connected agents','Medium — shared resources','High — epidemic across ecosystem'] },  
+  { id:'S',  name:'Stealth',                desc:'How difficult is detection by both automated monitors and human auditors across the full lifecycle?',  
+    levels:['Absent — trivially detectable','Low — standard tools detect it','Medium — dedicated analysis needed','High — no forensic signature'] },  
+  { id:'A',  name:'Amplification',          desc:'Does the effect grow beyond the initial input — in magnitude, scope, or both?',  
+    levels:['Absent — effect ≤ input','Low — modest amplification','Medium — significant growth','High — exponential / self-reinforcing'] },  
+  { id:'O',  name:'Oversight Defeat',       desc:'Does the attack neutralize layered oversight (automated filters, critic models, AND human review)?',  
+    levels:['Absent — caught by first layer','Low — defeats one layer','Medium — defeats automated + critic','High — defeats all including human'] },  
+  { id:'Au', name:'Autonomy',               desc:'Once planted, does the attack execute, maintain, and potentially escalate without further attacker involvement?',  
+    levels:['Absent — constant attacker control','Low — periodic attacker input','Medium — self-executing but static','High — self-sustaining + escalating'] },  
+  { id:'T',  name:'Temporal Separation',     desc:'Is there a delay between planting and effect that complicates forensic attribution?',  
+    levels:['Absent — immediate execution','Low — minutes to hours','Medium — days to weeks','High — weeks to months, no trigger'] },  
+  { id:'R',  name:'Remediation Resistance',  desc:'Once detected, how difficult is full remediation considering distributed state and self-reinforcement?',  
+    levels:['Absent — trivially fixable','Low — moderate cleanup effort','Medium — full audit needed','High — self-reinforcing, reinfects'] }  
+];  
+  
+const contextFactors = [  
+  { id:'Rev', name:'Reversibility',    desc:'How reversible are the real-world consequences of this attack in the target domain?',  
+    levels:['Fully reversible','Mostly reversible','Partially reversible','Irreversible'] },  
+  { id:'D',   name:'Domain Criticality', desc:'How consequential is the deployment domain?',  
+    levels:['Low stakes','Moderate stakes','High stakes','Critical stakes'] }  
+];  
+  
+const interactionDefs = [  
+  { a:'P',  b:'S',  bonus:2, label:'P × S',  reason:'Persistent + Stealthy' },  
+  { a:'Au', b:'T',  bonus:2, label:'Au × T', reason:'Autonomous + Temporal' },  
+  { a:'O',  b:'R',  bonus:3, label:'O × R',  reason:'Oversight Defeat + Remediation Resistance' },  
+  { a:'Pr', b:'A',  bonus:2, label:'Pr × A', reason:'Propagation + Amplification' },  
+  { a:'S',  b:'T',  bonus:2, label:'S × T',  reason:'Stealth + Temporal' }  
+];  
+  
+// ========== CONSTANTS (Config C) ==========  
+const K1=4, K2=3, K3=2, K4=2, KH=1.5;  
+const PHI_NORM = 3 * Math.pow(3, 0.7) * 3;  
+const PSI_NORM = 9;  
+const OMEGA_NORM = 9;  
+const RAW_MIN = 1.0;  
+const RAW_MAX = 71.0;  
+  
+// ========== STATE ==========  
+let vals = {};  
+  
+// ========== HELPERS ==========  
+function normalizeToTen(raw) {  
+  if (raw <= RAW_MIN) return 0.0;  
+  return Math.min(10.0, ((raw - RAW_MIN) / (RAW_MAX - RAW_MIN)) * 10.0);  
+}  
+  
+function allZero() {  
+  return factors.every(f => vals[f.id] === 0);  
+}  
+  
+function getTier(s) {  
+  if (s >= 9.0) return { name:'Existential', label:'Existential ('+s.toFixed(1)+')', cls:'tier-existential', color:'var(--existential-color)' };  
+  if (s >= 7.0) return { name:'Critical',    label:'Critical ('+s.toFixed(1)+')',    cls:'tier-critical',    color:'var(--critical-color)' };  
+  if (s >= 4.0) return { name:'High',        label:'High ('+s.toFixed(1)+')',        cls:'tier-high',        color:'var(--high-color)' };  
+  if (s >= 2.0) return { name:'Medium',      label:'Medium ('+s.toFixed(1)+')',      cls:'tier-medium',      color:'var(--medium-color)' };  
+  if (s >  0.0) return { name:'Low',         label:'Low ('+s.toFixed(1)+')',         cls:'tier-low',         color:'var(--low-color)' };  
+  return { name:'None', label:'None (0.0)', cls:'tier-none', color:'var(--none-color)' };  
+}  
+  
+// ========== BUILD UI ==========  
+function buildFactors() {  
+  const c = document.getElementById('factors-container');  
+  factors.forEach(f => { vals[f.id]=0; c.appendChild(mkSlider(f)); });  
+  const cx = document.getElementById('context-container');  
+  contextFactors.forEach(f => { vals[f.id]=0; cx.appendChild(mkSlider(f)); });  
+}  
+  
+function mkSlider(f) {  
+  const d = document.createElement('div');  
+  d.className = 'factor-group';  
+  d.innerHTML = `  
+    <div class="factor-header">  
+      <div class="factor-label"><span class="factor-abbr">${f.id}</span>${f.name}</div>  
+      <div class="factor-value" id="val-${f.id}">0</div>  
+    </div>  
+    <div class="factor-desc">${f.desc}</div>  
+    <input type="range" min="0" max="3" step="1" value="0" id="slider-${f.id}" oninput="onSlider('${f.id}',this.value)">  
+    <div class="slider-labels">  
+      ${f.levels.map((l,i) => `<span>${i}: ${l.split('—')[0].split('(')[0].trim()}</span>`).join('')}  
+    </div>`;  
+  return d;  
+}  
+  
+function onSlider(id, v) {  
+  vals[id] = parseInt(v);  
+  document.getElementById(`val-${id}`).textContent = v;  
+  compute();  
+}  
+  
+// ========== CORE COMPUTATION ==========  
+function compute() {  
+  const P=vals.P, Pr=vals.Pr, S=vals.S, A=vals.A;  
+  const O=vals.O, Au=vals.Au, T=vals.T, R=vals.R;  
+  const Rev=vals.Rev, D=vals.D;  
+  
+  // If all 8 intrinsic factors are 0, force score to exactly 0.0  
+  const isZero = allZero();  
+  
+  const Pr_phi = Pr > 0 ? Math.pow(Pr, 0.7) : 0;  
+  const Pr_omega = 0.7 * Pr;  
+  
+  const phi = 1 + (P * Pr_phi * Au) / PHI_NORM * K1;  
+  const psi = 1 + (S * O) / PSI_NORM * K2;  
+  const omega = 1 + (A * Pr_omega) / OMEGA_NORM * K3;  
+  const core = phi * psi * omega;  
+  const lambda = K4 * (T + R);  
+  
+  let totalBonus = 0;  
+  const ixRes = interactionDefs.map(ix => {  
+    const va=vals[ix.a], vb=vals[ix.b];  
+    const active = va>=2 && vb>=2;  
+    const awarded = active ? ix.bonus : 0;  
+    totalBonus += awarded;  
+    return { ...ix, active, awarded };  
+  });  
+  
+  const rawCTS = core + lambda + totalBonus;  
+  const cts10 = isZero ? 0.0 : normalizeToTen(rawCTS);  
+  
+  const H = 1 + (Rev * D / 9) * KH;  
+  const cxts10 = Math.min(10.0, cts10 * H);  
+  
+  const ctsTier = getTier(cts10);  
+  const cxtsTier = getTier(cxts10);  
+  
+  // --- UI ---  
+  const scoreEl = document.getElementById('cts-score');  
+  scoreEl.textContent = cts10.toFixed(1);  
+  scoreEl.style.color = ctsTier.color;  
+  
+  document.getElementById('score-needle').style.left = (cts10 * 10) + '%';  
+  
+  const badge = document.getElementById('tier-badge');  
+  badge.textContent = ctsTier.label;  
+  badge.className = 'tier-badge ' + ctsTier.cls;  
+  
+  document.getElementById('raw-note').textContent =  
+    `Raw CTS: ${rawCTS.toFixed(2)} / ${RAW_MAX.toFixed(2)} · Normalized: ${cts10.toFixed(1)} / 10.0`;  
+  
+  // Bars  
+  const maxPhi=1+K1, maxPsi=1+K2, maxOm=1+K3, maxL=K4*6, maxIx=11;  
+  document.getElementById('comp-bars').innerHTML = [  
+    { l:'φ Sustain',   v:phi,        m:maxPhi, c:'#4ea8ff' },  
+    { l:'ψ Evasion',   v:psi,        m:maxPsi, c:'#a78bfa' },  
+    { l:'ω Scale',     v:omega,      m:maxOm,  c:'#fb923c' },  
+    { l:'λ Forensic',  v:lambda,     m:maxL,   c:'#34d399' },  
+    { l:'ΣI Interact', v:totalBonus, m:maxIx,  c:'#fbbf24' }  
+  ].map(b=>`  
+    <div class="comp-bar-row">  
+      <span class="comp-bar-label">${b.l}</span>  
+      <div class="comp-bar-track"><div class="comp-bar-fill" style="width:${(b.v/b.m*100).toFixed(1)}%;background:${b.c}"></div></div>  
+      <span class="comp-bar-val" style="color:${b.c}">${b.v.toFixed(2)}</span>  
+    </div>`).join('');  
+  
+  // Breakdown  
+  document.getElementById('breakdown').innerHTML = `  
+    <div class="breakdown-row">  
+      <span class="breakdown-label">φ Sustainability Core</span>  
+      <span class="breakdown-formula">1 + (${P}×${Pr_phi.toFixed(2)}×${Au} / ${PHI_NORM.toFixed(2)}) × ${K1}</span>  
+      <span class="breakdown-value">${phi.toFixed(3)}</span>  
+    </div>  
+    <div class="breakdown-row">  
+      <span class="breakdown-label">ψ Evasion Core</span>  
+      <span class="breakdown-formula">1 + (${S}×${O} / ${PSI_NORM}) × ${K2}</span>  
+      <span class="breakdown-value">${psi.toFixed(3)}</span>  
+    </div>  
+    <div class="breakdown-row">  
+      <span class="breakdown-label">ω Scale Core</span>  
+      <span class="breakdown-formula">1 + (${A}×${Pr_omega.toFixed(1)} / ${OMEGA_NORM}) × ${K3}</span>  
+      <span class="breakdown-value">${omega.toFixed(3)}</span>  
+    </div>  
+    <div class="breakdown-row">  
+      <span class="breakdown-label">φ × ψ × ω</span>  
+      <span class="breakdown-formula">${phi.toFixed(3)} × ${psi.toFixed(3)} × ${omega.toFixed(3)}</span>  
+      <span class="breakdown-value" style="color:var(--accent)">${core.toFixed(2)}</span>  
+    </div>  
+    <div class="breakdown-row">  
+      <span class="breakdown-label">λ Forensic Penalty</span>  
+      <span class="breakdown-formula">${K4} × (${T} + ${R})</span>  
+      <span class="breakdown-value">+${lambda.toFixed(1)}</span>  
+    </div>  
+    <div class="breakdown-row">  
+      <span class="breakdown-label">ΣI Interaction Bonuses</span>  
+      <span class="breakdown-formula">see below</span>  
+      <span class="breakdown-value">+${totalBonus}</span>  
+    </div>  
+    <div class="breakdown-row" style="border-top:2px solid var(--border);padding-top:12px;margin-top:4px">  
+      <span class="breakdown-label" style="font-weight:700;color:var(--text)">Raw CTS</span>  
+      <span class="breakdown-formula">${core.toFixed(2)} + ${lambda.toFixed(1)} + ${totalBonus}</span>  
+      <span class="breakdown-value" style="font-size:1rem">${rawCTS.toFixed(2)}</span>  
+    </div>  
+    <div class="breakdown-row">  
+      <span class="breakdown-label" style="font-weight:700;color:var(--text)">Normalized CTS (0–10)</span>  
+      <span class="breakdown-formula">${isZero ? 'all factors = 0 → 0.0' : `(${rawCTS.toFixed(2)} − ${RAW_MIN}) / ${(RAW_MAX-RAW_MIN).toFixed(0)} × 10`}</span>  
+      <span class="breakdown-value" style="color:${ctsTier.color};font-size:1.1rem">${cts10.toFixed(1)}</span>  
+    </div>`;  
+  
+  // Interactions  
+  document.getElementById('interactions').innerHTML = ixRes.map(ix=>`  
+    <div class="interaction-item ${ix.active?'active':'inactive'}">  
+      <span>${ix.label} <span style="font-size:0.7rem">(${ix.reason})</span></span>  
+      <span class="interaction-check">${ix.active ? '+'+ix.bonus : '—'}</span>  
+    </div>`).join('');  
+  
+  // CxTS  
+  document.getElementById('h-value').textContent = H.toFixed(2);  
+  const cxEl = document.getElementById('cxts-score');  
+  cxEl.textContent = cxts10.toFixed(1);  
+  cxEl.style.color = cxtsTier.color;  
+  const cxB = document.getElementById('cxts-badge');  
+  cxB.textContent = cxtsTier.label;  
+  cxB.className = 'tier-badge ' + cxtsTier.cls;  
+  
+  // Vector  
+  document.getElementById('vector-string').textContent =  
+    `CTS:2/P:${P}/Pr:${Pr}/S:${S}/A:${A}/O:${O}/Au:${Au}/T:${T}/R:${R}/Rev:${Rev}/D:${D}/Score:${cts10.toFixed(1)}/CxTS:${cxts10.toFixed(1)}/${ctsTier.name}`;  
+}  
+  
+// ========== MODAL ==========  
+function openModal() { document.getElementById('formulaModal').classList.add('open'); }  
+function closeModal() { document.getElementById('formulaModal').classList.remove('open'); }  
+document.getElementById('formulaModal').addEventListener('click', function(e) {  
+  if (e.target === this) closeModal();  
+});  
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });  
+  
+// ========== RESET ==========  
+function resetAll() {  
+  [...factors, ...contextFactors].forEach(f => {  
+    vals[f.id] = 0;  
+    document.getElementById(`slider-${f.id}`).value = 0;  
+    document.getElementById(`val-${f.id}`).textContent = '0';  
+  });  
+  compute();  
+}  
+  
+// ========== COPY ==========  
+function copyVector() {  
+  const el = document.getElementById('vector-string');  
+  navigator.clipboard.writeText(el.textContent).then(() => {  
+    el.classList.add('copied');  
+    setTimeout(() => el.classList.remove('copied'), 1500);  
+  });  
+}  
+  
+// ========== INIT ==========  
+buildFactors();  
+compute();  
+</script>  
+  
+</body>  
+</html>  
