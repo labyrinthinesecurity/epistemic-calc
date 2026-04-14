@@ -64,6 +64,13 @@
     font-size: 0.9rem;  
   }  
   
+  header a {  
+    color: var(--accent);  
+    text-decoration: none;  
+  }  
+  
+  header a:hover { text-decoration: underline; }  
+  
   .top-bar {  
     display: flex;  
     justify-content: flex-end;  
@@ -301,14 +308,14 @@
     transition: color 0.3s;  
   }  
   
-  .harm-multiplier {  
+  .mitigation-factor {  
     text-align: center;  
     font-size: 1.1rem;  
     color: var(--text-dim);  
     margin-bottom: 6px;  
   }  
   
-  .harm-multiplier span { color: var(--accent); font-weight: 700; }  
+  .mitigation-factor span { color: var(--accent); font-weight: 700; }  
   
   .tier-ref { margin-top: 24px; }  
   
@@ -744,17 +751,18 @@
     </div>  
     <p>Raw CTS ranges from 1.0 (all zeros — the three cores each equal 1, product = 1) to 71.0 (all factors at 3). This is linearly mapped to <strong>0.0 – 10.0</strong> for CVSS compatibility.</p>  
   
-    <h3>CxTS — Contextual Threat Score</h3>  
+    <h3>CxTS — Contextual Threat Score (Mitigation)</h3>  
     <div class="formula-block">  
-      H = 1 + (Rev × D) / 9 × 1.5<br>  
-      CxTS = min(10.0, CTS_normalized × H)  
+      M = 1 − (Rev_inv × D_inv) / 9 × 0.6<br>  
+      CxTS = CTS × M  
     </div>  
-    <p>The Harm Multiplier <strong>H</strong> accounts for real-world context:</p>  
+    <p>The Mitigation Factor <strong>M</strong> accounts for real-world context that <em>reduces</em> effective risk:</p>  
     <ul>  
-      <li><strong>Rev (Reversibility)</strong> — can the damage be undone?</li>  
-      <li><strong>D (Domain Criticality)</strong> — how high are the stakes?</li>  
+      <li><strong>Rev (Reversibility)</strong> — 0 = irreversible (worst) → 3 = fully reversible (best, most mitigating)</li>  
+      <li><strong>D (Domain Criticality)</strong> — 0 = critical stakes (worst) → 3 = low stakes (best, most mitigating)</li>  
     </ul>  
-    <p>H ranges from <code>1.0×</code> (low-stakes, reversible) to <code>2.5×</code> (critical, irreversible). CxTS is capped at 10.0.</p>  
+    <p><strong>Key insight:</strong> These sliders represent <em>defenses and mitigations</em>, not additional threats. Higher values = more mitigation = lower CxTS. When both are 0 (irreversible harm in a critical domain), M = 1.0 and CxTS = CTS (no mitigation). When both are 3 (fully reversible in a low-stakes domain), M = 0.4 and CxTS = 0.4 × CTS (maximum mitigation).</p>  
+    <p>M ranges from <code>1.0×</code> (no mitigation — worst case) to <code>0.4×</code> (maximum mitigation — best case). CxTS ≤ CTS always.</p>  
   
     <h3>Severity Bands (CVSS-aligned)</h3>  
     <table>  
@@ -768,14 +776,14 @@
     </table>  
   
     <h3>Configuration</h3>  
-    <p>This calculator uses <strong>Config C</strong>: k₁=4, k₂=3, k₃=2, k₄=2, k<sub>H</sub>=1.5. Sensitivity analysis across five configurations (k₁ from 2–6) shows all rankings are stable — top-4 and bottom-3 triples are invariant across all tested parameters.</p>  
+    <p>This calculator uses <strong>Config C</strong>: k₁=4, k₂=3, k₃=2, k₄=2, k<sub>M</sub>=0.6. Sensitivity analysis across five configurations (k₁ from 2–6) shows all rankings are stable — top-4 and bottom-3 triples are invariant across all tested parameters.</p>  
   </div>  
 </div>  
   
 <div class="container">  
   <header>  
     <h1>AI <span>Epistemic Threat</span> Calculator based on Google's <span>Agent Traps</span></h1>  
-    <p>The Compound Threat Score (CTS) V2 is a nonlinear scoring system made by Opus and ChatGPT · Original traps by <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6372438">Franklin et al. (2026)</a> · </p>  
+    <p>The Compound Threat Score (CTS) V2 is a nonlinear scoring system made by Opus and ChatGPT · Original traps by <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6372438">Franklin et al. (2026)</a></p>  
   </header>  
   
   <div class="top-bar">  
@@ -794,9 +802,9 @@
   
         <hr class="divider">  
   
-        <div class="panel-title">Context Factors (CxTS)  
+        <div class="panel-title">Context Mitigation Factors (CxTS)  
           <span class="info-icon">?  
-            <span class="tooltip">Domain-dependent factors applied <em>after</em> the intrinsic CTS to produce the Contextual Threat Score. CxTS uses the same 0–10 scale but accounts for real-world harm reversibility and domain criticality. These do not affect the core CTS ranking.</span>  
+            <span class="tooltip">These represent <strong>mitigating circumstances</strong> that reduce the effective threat. Higher values = more mitigation = lower CxTS. When both are 0, CxTS equals CTS (no mitigation). When both are 3, CxTS is reduced to 40% of CTS (maximum mitigation).</span>  
           </span>  
         </div>  
         <div id="context-container"></div>  
@@ -840,12 +848,12 @@
         <div class="cxts-section">  
           <div class="panel-title">Contextual Threat Score  
             <span class="info-icon">?  
-              <span class="tooltip">CxTS = CTS × H(Rev,D), capped at 10.0. The Harm Multiplier H scales the intrinsic score by domain context. In low-stakes reversible domains H≈1; in critical irreversible domains H can reach 2.5×, but CxTS is always clamped to 0–10.</span>  
+              <span class="tooltip">CxTS = CTS × M, where M is a mitigation factor between 0.4 and 1.0. Higher Reversibility and lower Domain Criticality reduce the effective threat. CxTS is always ≤ CTS. When both context factors are 0 (worst case: irreversible + critical domain), M = 1.0 and CxTS = CTS.</span>  
             </span>  
           </div>  
-          <div class="harm-multiplier">Harm Multiplier H = <span id="h-value">1.00</span>×</div>  
+          <div class="mitigation-factor">Mitigation Factor M = <span id="m-value">1.00</span>×</div>  
           <div class="cxts-score" id="cxts-score">0.0</div>  
-          <div class="cts-label" style="text-align:center">CxTS = CTS × H (capped at 10.0)</div>  
+          <div class="cts-label" style="text-align:center">CxTS = CTS × M (always ≤ CTS)</div>  
           <div id="cxts-badge" class="tier-badge tier-none" style="display:block;text-align:center;margin:12px auto 0">None (0.0)</div>  
         </div>  
   
@@ -861,7 +869,7 @@
           <div class="tier-ref-row"><span class="tier-dot t-none"></span><span class="tier-range">0.0</span><span class="tier-name" style="color:var(--none-color)">None</span></div>  
         </div>  
   
-        <div class="vector-string" id="vector-string" onclick="copyVector()">CTS:2/P:0/Pr:0/S:0/A:0/O:0/Au:0/T:0/R:0/Rev:0/D:0/S:0.0/T:None</div>  
+        <div class="vector-string" id="vector-string" onclick="copyVector()">CTS:2/P:0/Pr:0/S:0/A:0/O:0/Au:0/T:0/R:0/Rev:0/D:0/Score:0.0/CxTS:0.0/None</div>  
       </div>  
     </div>  
   
@@ -894,10 +902,10 @@ const factors = [
 ];  
   
 const contextFactors = [  
-  { id:'Rev', name:'Reversibility',    desc:'How reversible are the real-world consequences of this attack in the target domain?',  
-    levels:['Fully reversible','Mostly reversible','Partially reversible','Irreversible'] },  
-  { id:'D',   name:'Domain Criticality', desc:'How consequential is the deployment domain?',  
-    levels:['Low stakes','Moderate stakes','High stakes','Critical stakes'] }  
+  { id:'Rev', name:'Reversibility of Harm', desc:'How reversible are the real-world consequences? Higher = more reversible = more mitigation.',  
+    levels:['0: Irreversible','1: Partially reversible','2: Mostly reversible','3: Fully reversible'] },  
+  { id:'D',   name:'Domain Safety', desc:'How safe/low-stakes is the deployment domain? Higher = lower stakes = more mitigation.',  
+    levels:['0: Critical (medical, defense)','1: High (financial, legal)','2: Moderate (e-commerce)','3: Low stakes (entertainment)'] }  
 ];  
   
 const interactionDefs = [  
@@ -909,7 +917,7 @@ const interactionDefs = [
 ];  
   
 // ========== CONSTANTS (Config C) ==========  
-const K1=4, K2=3, K3=2, K4=2, KH=1.5;  
+const K1=4, K2=3, K3=2, K4=2, KM=0.6;  
 const PHI_NORM = 3 * Math.pow(3, 0.7) * 3;  
 const PSI_NORM = 9;  
 const OMEGA_NORM = 9;  
@@ -957,7 +965,7 @@ function mkSlider(f) {
     <div class="factor-desc">${f.desc}</div>  
     <input type="range" min="0" max="3" step="1" value="0" id="slider-${f.id}" oninput="onSlider('${f.id}',this.value)">  
     <div class="slider-labels">  
-      ${f.levels.map((l,i) => `<span>${i}: ${l.split('—')[0].split('(')[0].trim()}</span>`).join('')}  
+      ${f.levels.map((l,i) => `<span>${l.split('—')[0].split('(')[0].trim()}</span>`).join('')}  
     </div>`;  
   return d;  
 }  
@@ -974,7 +982,6 @@ function compute() {
   const O=vals.O, Au=vals.Au, T=vals.T, R=vals.R;  
   const Rev=vals.Rev, D=vals.D;  
   
-  // If all 8 intrinsic factors are 0, force score to exactly 0.0  
   const isZero = allZero();  
   
   const Pr_phi = Pr > 0 ? Math.pow(Pr, 0.7) : 0;  
@@ -998,8 +1005,11 @@ function compute() {
   const rawCTS = core + lambda + totalBonus;  
   const cts10 = isZero ? 0.0 : normalizeToTen(rawCTS);  
   
-  const H = 1 + (Rev * D / 9) * KH;  
-  const cxts10 = Math.min(10.0, cts10 * H);  
+  // Mitigation Factor: M = 1 - (Rev * D / 9) * KM  
+  // Rev=0, D=0 (worst context: irreversible + critical) → M = 1.0 (no mitigation)  
+  // Rev=3, D=3 (best context: reversible + low stakes) → M = 0.4 (60% reduction)  
+  const M = 1 - (Rev * D / 9) * KM;  
+  const cxts10 = Math.max(0.0, cts10 * M);  
   
   const ctsTier = getTier(cts10);  
   const cxtsTier = getTier(cxts10);  
@@ -1084,7 +1094,7 @@ function compute() {
     </div>`).join('');  
   
   // CxTS  
-  document.getElementById('h-value').textContent = H.toFixed(2);  
+  document.getElementById('m-value').textContent = M.toFixed(2);  
   const cxEl = document.getElementById('cxts-score');  
   cxEl.textContent = cxts10.toFixed(1);  
   cxEl.style.color = cxtsTier.color;  
