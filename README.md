@@ -53,7 +53,7 @@ These properties interact multiplicatively. CTS v2 was designed from the ground 
   
 ### The Research Behind CTS  
   
-The scoring system emerged from a systematic analysis of all 20 unique three-way combinations of the six Agent Trap categories identified by Franklin et al. (2025):  
+The scoring system emerged from a systematic analysis of all 20 unique three-way combinations of the six Agent Trap categories identified by Franklin et al. (2026):  
   
 | Abbreviation | Trap Category | What It Targets |  
 |:------------:|---------------|-----------------|  
