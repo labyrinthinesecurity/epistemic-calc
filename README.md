@@ -8,7 +8,7 @@ Inspired by [CVSS](https://www.first.org/cvss/) but purpose-built for the unique
   
 > Based on the Agent Trap taxonomy from [Franklin et al. (2026)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6372438) and the Compound Threat Framework developed through independent analysis by Claude Opus 4.6 and ChatGPT 5.2.  
   
-\!\[CTS v2 Screenshot\] (screen0.PNG)  
+![Online calculator](screen0.PNG)  
   
 ---  
   
