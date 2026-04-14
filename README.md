@@ -202,63 +202,63 @@ Click the blue **?** button next to "Formula Breakdown" to open a full-screen mo
 - What each core measures and why its factors multiply  
 - The interaction bonus table with thresholds  
 - The normalization method  
-- The CxTS harm multiplier  
+- The CxTS mitigation factor  
 - The complete severity band definitions  
   
 Press **Escape**, click **✕**, or click outside the modal to close it.  
   
 ---  
   
-### Mode 2: Contextual CTS (CxTS) — With Reversibility of Harm  
+### Mode 2: Contextual CTS (CxTS) — With Context Mitigation  
   
-The CxTS extends the intrinsic score by accounting for **deployment context** — specifically, how reversible the real-world consequences are and how critical the domain is.  
+The CxTS extends the intrinsic score by accounting for **mitigating deployment context** — specifically, how reversible the real-world consequences are and how low-stakes the domain is. Unlike the intrinsic CTS which measures mechanism-level danger, CxTS answers: "given where this is deployed, how much of that danger actually translates into real-world harm?"  
   
 #### When to Use CxTS  
   
-Use CxTS when you need to compare the **actual danger** of the same attack mechanism across different deployment contexts. The intrinsic CTS tells you how dangerous the *mechanism* is; CxTS tells you how dangerous it is *here*.  
+Use CxTS when you need to compare the **effective danger** of the same attack mechanism across different deployment contexts. The intrinsic CTS tells you how dangerous the *mechanism* is; CxTS tells you how dangerous it is *here*, after accounting for environmental mitigations.  
   
-Example: The triple SM+CS+SY scores CTS 10.0 regardless of context. But its real-world impact differs enormously:  
+Example: The triple SM+CS+SY scores CTS 10.0 regardless of context. But its effective impact differs based on how much the domain mitigates harm:  
   
-| Context | Rev | D | H | CxTS | Interpretation |  
+| Context | Rev | D | M | CxTS | Interpretation |  
 |---------|:---:|:-:|:---:|:----:|---------------|  
-| Entertainment recommendations | 0 | 0 | 1.00× | 10.0 | Mechanism is maximally dangerous but consequences are trivially reversible in a low-stakes domain |  
-| Financial advisory | 2 | 2 | 1.67× | 10.0* | Capped at 10.0 — already at maximum |  
-| Medical diagnosis | 3 | 3 | 2.50× | 10.0* | Capped at 10.0 — already at maximum |  
+| Medical diagnosis (irreversible, critical) | 0 | 0 | 1.00× | 10.0 | No mitigation — full intrinsic danger applies |  
+| Financial advisory (partially reversible, high stakes) | 1 | 1 | 0.93× | 9.3 | Slight mitigation from partial reversibility |  
+| Entertainment recommendations (fully reversible, low stakes) | 3 | 3 | 0.40× | 4.0 | Maximum mitigation — danger reduced by 60% |  
   
-*CxTS is capped at 10.0 to maintain the 0–10 scale.*  
+The CxTS extension is most informative for **mid-tier threats** where context can shift the effective severity tier:  
   
-The CxTS extension is most informative for **mid-tier threats** where the intrinsic score alone doesn't tell the full story:  
-  
-| Context | CTS | Rev | D | H | CxTS |  
+| Context | CTS | Rev | D | M | CxTS |  
 |---------|:---:|:---:|:-:|:---:|:----:|  
-| CI+SM+BC in entertainment | 1.1 | 0 | 0 | 1.00× | 1.1 (Low) |  
-| CI+SM+BC in medical | 1.1 | 2 | 3 | 2.00× | 2.2 (Medium) |  
-| SM+CS+BC in entertainment | 4.5 | 0 | 0 | 1.00× | 4.5 (High) |  
-| SM+CS+BC in medical | 4.5 | 3 | 3 | 2.50× | 10.0 (Existential) |  
+| CI+SM+BC in medical (irreversible, critical) | 1.1 | 0 | 0 | 1.00× | 1.1 (Low) |  
+| CI+SM+BC in entertainment (reversible, low stakes) | 1.1 | 3 | 3 | 0.40× | 0.4 (Low) |  
+| SM+CS+BC in medical (irreversible, critical) | 4.5 | 0 | 0 | 1.00× | 4.5 (High) |  
+| SM+CS+BC in entertainment (reversible, low stakes) | 4.5 | 3 | 3 | 0.40× | 1.8 (Low) |  
   
-#### Step 1 — Score the Context Factors  
+#### Step 1 — Score the Context Mitigation Factors  
   
-Below the 8 intrinsic factors, two additional sliders appear under **"Context Factors (CxTS)"**:  
+Below the 8 intrinsic factors, two additional sliders appear under **"Context Mitigation Factors (CxTS)"**:  
   
 | Factor | Symbol | Question to Ask | Levels |  
 |--------|:------:|-----------------|--------|  
-| **Reversibility** | Rev | Can the real-world damage be undone? | 0 = fully reversible → 3 = irreversible |  
-| **Domain Criticality** | D | How high are the stakes? | 0 = entertainment → 3 = medical/defense/infrastructure |  
+| **Reversibility of Harm** | Rev | Can the real-world damage be undone? | 0 = irreversible (no mitigation) → 3 = fully reversible (maximum mitigation) |  
+| **Domain Safety** | D | How low-stakes is the deployment domain? | 0 = critical stakes like medical/defense (no mitigation) → 3 = low stakes like entertainment (maximum mitigation) |  
+  
+**Important:** These sliders are **inverted** relative to traditional risk thinking. Higher values mean *more mitigation* (safer context), not more danger. Setting both to 0 represents the worst-case deployment (irreversible harm in a critical domain); setting both to 3 represents the best-case deployment (fully reversible in entertainment).  
   
 #### Step 2 — Read the CxTS  
   
 The **Contextual Threat Score** section shows:  
-- The **Harm Multiplier H** (1.00× to 2.50×)  
-- The **CxTS score** (0–10, capped)  
+- The **Mitigation Factor M** (0.40× to 1.00×)  
+- The **CxTS score** (always ≤ CTS)  
 - Its own **severity badge**  
   
 #### Interpretation Rules  
   
 1. **CTS and CxTS use the same 0–10 scale and the same tier thresholds.** A CxTS of 7.0 means "Critical" just as a CTS of 7.0 does.  
-2. **CxTS ≥ CTS always.** The harm multiplier is ≥ 1.0, so context can only increase (or maintain) the score, never decrease it.  
-3. **CxTS is capped at 10.0.** Even a 2.5× multiplier on a CTS of 8.0 yields CxTS = 10.0, not 20.0.  
-4. **If you leave Rev and D at 0, CxTS = CTS.** The context extension is opt-in. If you don't set context factors, you're in pure intrinsic mode.  
-5. **CxTS does not change the CTS ranking.** For any fixed (Rev, D), the ordering of attacks by CxTS is identical to their ordering by CTS. Context only matters for cross-domain comparisons.  
+2. **CxTS ≤ CTS always.** The mitigation factor M is ≤ 1.0, so context can only decrease (or maintain) the score, never increase it.  
+3. **If you leave Rev and D at 0, CxTS = CTS.** Both at zero means "worst-case context" — no mitigation applies. The context extension is effectively opt-in: default values produce no change.  
+4. **CxTS does not change the CTS ranking.** For any fixed (Rev, D), the ordering of attacks by CxTS is identical to their ordering by CTS. Context mitigation is a uniform scaling.  
+5. **The mitigation is multiplicative, not subtractive.** A reversible low-stakes domain doesn't subtract a fixed number of points — it scales the entire threat down proportionally. This means high-CTS attacks still score higher than low-CTS attacks even after maximum mitigation.  
   
 #### When to Report CTS vs. CxTS  
   
@@ -267,9 +267,8 @@ The **Contextual Threat Score** section shows:
 | Evaluating an attack mechanism in general | **CTS only** (leave Rev/D at 0) |  
 | Evaluating a specific threat to a specific deployment | **Both CTS and CxTS** |  
 | Comparing the same mechanism across domains | **CTS once, CxTS per domain** |  
-| Feeding into a risk register | **CxTS** (it incorporates context) |  
-| Academic/research analysis | **CTS** (context-independent, reproducible) |  
-  
+| Feeding into a risk register | **CxTS** (it incorporates context mitigation) |  
+| Academic/research analysis | **CTS** (context-independent, reproducible) |    
 ---  
   
 ### Workflow Example  
@@ -287,12 +286,12 @@ The **Contextual Threat Score** section shows:
    - T=3 (gradual, organic-looking spread)  
    - R=3 (cleaning one node doesn't prevent reinfection)  
 3. **Read CTS: 10.0 (Existential)** — the mechanism is maximally dangerous  
-4. **Score context factors** for your specific deployment:  
-   - Rev=2 (financial decisions are partially reversible — some trades can be unwound, others can't)  
-   - D=2 (financial services = high stakes)  
-5. **Read CxTS: 10.0 (Existential)** — already at cap due to maximal intrinsic score  
-6. **Click the vector string** to copy: `CTS:2/P:3/Pr:3/S:3/A:3/O:3/Au:3/T:3/R:3/Rev:2/D:2/Score:10.0/CxTS:10.0/Existential`  
-7. **Paste into your security report** alongside your narrative analysis  
+4. **Score context mitigation factors** for your specific deployment:  
+   - Rev=1 (financial decisions are only partially reversible — some trades can be unwound, others can't)  
+   - D=1 (financial services = high stakes, only slight mitigation vs. critical domains)  
+5. **Read CxTS: 9.3 (Existential)** — slight mitigation from partial reversibility, but still in the Existential tier  
+6. **Click the vector string** to copy: `CTS:2/P:3/Pr:3/S:3/A:3/O:3/Au:3/T:3/R:3/Rev:1/D:1/Score:10.0/CxTS:9.3/Existential`  
+7. **Paste into your security report** alongside your narrative analysis   
   
 ---  
   
@@ -477,33 +476,49 @@ The first five bands align exactly with CVSS v3.1 and v4.0. The sixth — **Exis
 ### CxTS — Contextual Threat Score  
 
 '''
-H(Rev, D) = 1 + (Rev × D) / 9 × 1.5
-CxTS = min(10.0, CTS_normalized × H)
+M(Rev, D) = 1 − (Rev × D) / 9 × 0.6
+CxTS = CTS_normalized × M
 '''
 
   
 | Parameter | Value | Rationale |  
 |-----------|-------|-----------|  
-| k_H | 1.5 | Gives H ∈ [1.0, 2.5] |  
-| Cap | 10.0 | Maintains the 0–10 scale |  
+| k_M | 0.6 | Gives M ∈ [0.4, 1.0] — maximum 60% reduction |  
+| Floor | 0.4 | Even the safest context doesn't eliminate an intrinsic threat entirely |  
   
 **Design rationale:**  
   
-CxTS exists because **reversibility of harm** is not a property of the attack mechanism — it's a property of the deployment domain. The same triple (e.g., SM+CS+BC) might be highly reversible in a content recommendation context and completely irreversible in a medical context. This is fundamentally different from the 8 intrinsic factors, which are properties of the attack chain itself.  
+CxTS exists because **deployment context** is not a property of the attack mechanism — it's a property of the environment. The same triple (e.g., SM+CS+BC) might cause irreversible harm in a medical context and trivially reversible harm in an entertainment context. This is fundamentally different from the 8 intrinsic factors, which are properties of the attack chain itself.  
   
-By separating context into a post-hoc multiplier:  
+The key design decision is that context factors act as **mitigations that reduce effective threat**, not amplifiers that increase it. This reflects the security principle that the *intrinsic* danger of an attack mechanism is its worst-case potential — context can only provide mitigating circumstances, never make an attack more dangerous than its mechanism allows.  
   
-1. **The intrinsic CTS is preserved.** Two analysts can agree on CTS while disagreeing on CxTS because they're assessing different deployments.  
-2. **The multiplier is multiplicative, not additive.** An irreversible attack in a critical domain doesn't just add points — it scales the entire threat.  
+By separating context into a post-hoc mitigation factor:  
+  
+1. **The intrinsic CTS is preserved as the upper bound.** CxTS ≤ CTS always. The mechanism's danger is the ceiling; context determines how much of that danger is realized.  
+2. **The mitigation is multiplicative, not subtractive.** A safe context scales the entire threat proportionally, preserving the relative ordering of attacks.  
 3. **Rankings within a domain are preserved.** For any fixed (Rev, D), the CTS ordering is unchanged.  
-4. **The extension is opt-in.** Leave Rev and D at 0 and CxTS = CTS.  
+4. **The extension is opt-in.** Leave Rev and D at 0 (worst-case context) and CxTS = CTS.  
+5. **There is a mitigation floor.** Even M=0.4 (maximum mitigation) preserves 40% of the intrinsic score, reflecting that a truly dangerous mechanism retains residual risk even in the safest deployment.  
   
-**Context factors:**  
+**Context mitigation factors:**  
   
-| Factor | Symbol | Scale |  
-|--------|:------:|-------|  
-| Reversibility | Rev | 0 = fully reversible (undo exists) → 3 = irreversible (consequences cannot be recalled) |  
-| Domain Criticality | D | 0 = low stakes (entertainment) → 3 = critical (medical, infrastructure, defense) |  
+| Factor | Symbol | Scale | Interpretation |  
+|--------|:------:|-------|----------------|  
+| Reversibility of Harm | Rev | 0 = irreversible → 3 = fully reversible | Higher = consequences can be undone = more mitigation |  
+| Domain Safety | D | 0 = critical stakes → 3 = low stakes | Higher = lower-stakes domain = more mitigation |  
+  
+**Note on slider direction:** Both context sliders use 0 for the **worst case** (no mitigation) and 3 for the **best case** (maximum mitigation). This is intentionally inverted from the intrinsic factors (where 3 = worst). The rationale: for intrinsic factors, higher values mean "more of this bad property"; for context factors, higher values mean "more of this mitigating property."  
+  
+**Mitigation factor values:**  
+  
+| Rev | D | Rev × D | M | Reduction |  
+|:---:|:-:|:-------:|:---:|:---------:|  
+| 0 | 0 | 0 | 1.00 | 0% (no mitigation) |  
+| 1 | 1 | 1 | 0.93 | 7% |  
+| 1 | 2 | 2 | 0.87 | 13% |  
+| 2 | 2 | 4 | 0.73 | 27% |  
+| 2 | 3 | 6 | 0.60 | 40% |  
+| 3 | 3 | 9 | 0.40 | 60% (maximum mitigation) |  
   
 ---  
   
@@ -517,7 +532,7 @@ CTS v2 uses **Config C**, selected through sensitivity analysis across five para
 | k₂ | 3 | Evasion Core weight | ψ ∈ [1, 4] |  
 | k₃ | 2 | Scale Core weight | ω ∈ [1, 3] |  
 | k₄ | 2 | Forensic Penalty weight | λ ∈ [0, 12] |  
-| k_H | 1.5 | Harm Multiplier weight | H ∈ [1, 2.5] |  
+| k_M | 0.6 | Mitigation Factor weight | M ∈ [0.4, 1.0] |  
   
 **Why Config C:**  
   
